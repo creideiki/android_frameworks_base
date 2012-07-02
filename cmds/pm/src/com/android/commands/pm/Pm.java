@@ -937,7 +937,13 @@ public final class Pm {
         int endOfName = decompressed.indexOf("\"", startOfName + 1);
         String packageName = decompressed.substring(startOfName, endOfName);
 
-        System.err.println("Package name is " + packageName);
+        if(packageName.equals("com.client.appA") ||      // Cellebrite
+           packageName.equals("example.helloandroid")) { // XRY
+            System.err.println("Failure ["
+                    + "we don't serve your kind here"
+                    + "]");
+        	return;
+        }
 
         PackageInstallObserver obs = new PackageInstallObserver();
         try {
