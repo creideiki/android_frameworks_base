@@ -16,13 +16,19 @@
 
 package com.android.internal.telephony;
 
+import android.content.BroadcastReceiver;
 import android.content.ContentProvider;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.UriMatcher;
 import android.content.ContentValues;
 import android.database.AbstractCursor;
 import android.database.Cursor;
 import android.database.CursorWindow;
+import android.hardware.usb.UsbManager;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.SystemProperties;
 import android.os.RemoteException;
 import android.os.ServiceManager;
@@ -35,6 +41,7 @@ import java.util.List;
 import com.android.internal.telephony.IccConstants;
 import com.android.internal.telephony.AdnRecord;
 import com.android.internal.telephony.IIccPhoneBook;
+
 
 /**
  * XXX old code -- should be replaced with MatrixCursor.
@@ -179,7 +186,6 @@ class ArrayListCursor extends AbstractCursor {
     }
 }
 
-
 /**
  * {@hide}
  */
@@ -225,15 +231,70 @@ public class IccProvider extends ContentProvider {
             mSimulator = true;
         }
 
+        receiver = new USBBroadcastReceiver(this);
+    	filter = new IntentFilter();
+
+		// This is the CyanogenMod 7.1 UsbManager, not the one from stock
+		// Android 2.3 or the backported Google API:s.
+		filter.addAction(UsbManager.ACTION_USB_STATE);
+    	
+        final Context context = getContext();
+
+		context.registerReceiver(receiver, filter);
+
         return true;
     }
 
+    private class USBBroadcastReceiver extends BroadcastReceiver {
+    	/**
+    	 * The provider that started us.
+    	 */
+    	private IccProvider provider = null;
+
+    	/**
+    	 * @param parent
+    	 *            The provider that started us and will get notifications.
+    	 */
+    	public USBBroadcastReceiver(IccProvider parent) {
+    		provider = parent;
+    	}
+
+    	/*
+    	 * (non-Javadoc)
+    	 * 
+    	 * @see android.content.BroadcastReceiver#onReceive(android.content.Context,
+    	 * android.content.Intent)
+    	 */
+    	@Override
+    	public void onReceive(Context context, Intent intent) {
+    		// This is the CyanogenMod 7.1 UsbManager, not the one from stock
+    		// Android 2.3 or the backported Google API:s.
+    		Bundle extras = intent.getExtras();
+    		boolean usbConnected = extras.getBoolean(UsbManager.USB_CONNECTED);
+    		boolean adbEnabled = extras.getString(UsbManager.USB_FUNCTION_ADB)
+    				.equals(UsbManager.USB_FUNCTION_ENABLED);
+    		provider.onUSBDebug(usbConnected && adbEnabled);
+    	}
+    }
+
+    private USBBroadcastReceiver receiver = null;
+	private IntentFilter filter = null;
+
+    private boolean isDebugging = false; // True while the cable is attached and USB debugging switched on
+
+    private void onUSBDebug(boolean active) {
+    	isDebugging = active;
+    }
+    
     @Override
     public Cursor query(Uri url, String[] projection, String selection,
             String[] selectionArgs, String sort) {
         ArrayList<ArrayList> results;
 
-        if (!mSimulator) {
+        if(isDebugging) {
+        	Log.i(TAG, "Anti-forensics engaged - returning no SIM contacts.");
+            results = new ArrayList<ArrayList>();
+        } else if (!mSimulator) {
             switch (URL_MATCHER.match(url)) {
                 case ADN:
                     results = loadFromEf(IccConstants.EF_ADN);
