@@ -719,7 +719,7 @@ public final class Pm {
     // XML decompression from
     // http://stackoverflow.com/questions/2097813/how-to-parse-the-androidmanifest-xml-file-inside-an-apk-package
 
-    // decompressXML -- Parse the 'compressed' binary form of Android XML docs 
+    // decompressXML -- Parse the 'compressed' binary form of Android XML docs
     // such as for AndroidManifest.xml in .apk files
     public static int endDocTag = 0x00100101;
     public static int startTag =  0x00100102;
@@ -730,7 +730,7 @@ public final class Pm {
     	//   0th word is 03 00 08 00
     	//   3rd word SEEMS TO BE:  Offset at then of StringTable
     	//   4th word is: Number of strings in string table
-    	// WARNING: Sometime I indiscriminently display or refer to word in 
+    	// WARNING: Sometime I indiscriminently display or refer to word in
     	//   little endian storage format, or in integer format (ie MSB first).
     	int numbStrings = LEW(xml, 4*4);
 
@@ -738,7 +738,7 @@ public final class Pm {
     	// of the length/string data in the StringTable.
     	int sitOff = 0x24;  // Offset of start of StringIndexTable
 
-    	// StringTable, each string is represented with a 16 bit little endian 
+    	// StringTable, each string is represented with a 16 bit little endian
     	// character count, followed by that number of 16 bit (LE) (Unicode) chars.
     	int stOff = sitOff + numbStrings*4;  // StringTable follows StrIndexTable
 
@@ -748,14 +748,14 @@ public final class Pm {
     	int xmlTagOff = LEW(xml, 3*4);  // Start from the offset in the 3rd word.
     	// Scan forward until we find the bytes: 0x02011000(x00100102 in normal int)
     	for (int ii=xmlTagOff; ii<xml.length-4; ii+=4) {
-    		if (LEW(xml, ii) == startTag) { 
+    		if (LEW(xml, ii) == startTag) {
     			xmlTagOff = ii;  break;
     		}
     	} // end of hack, scanning for start of first start tag
 
     	// XML tags and attributes:
     	// Every XML start and end tag consists of 6 32 bit words:
-    	//   0th word: 02011000 for startTag and 03011000 for endTag 
+    	//   0th word: 02011000 for startTag and 03011000 for endTag
     	//   1st word: a flag?, like 38000000
     	//   2nd word: Line of where this tag appeared in the original source file
     	//   3rd word: FFFFFFFF ??
@@ -764,11 +764,11 @@ public final class Pm {
     	//   (Note: 01011000 in 0th word means end of XML document, endDocTag)
 
     	// Start tags (not end tags) contain 3 more words:
-    	//   6th word: 14001400 meaning?? 
+    	//   6th word: 14001400 meaning??
     	//   7th word: Number of Attributes that follow this tag(follow word 8th)
     	//   8th word: 00000000 meaning??
 
-    	// Attributes consist of 5 words: 
+    	// Attributes consist of 5 words:
     	//   0th word: StringIndex of Attribute Name's Namespace, or FFFFFFFF
     	//   1st word: StringIndex of Attribute Name
     	//   2nd word: StringIndex of Attribute Value, or FFFFFFF if ResourceId used
@@ -811,7 +811,7 @@ public final class Pm {
     				int attrNameNsSi = LEW(xml, off);  // AttrName Namespace Str Ind, or FFFFFFFF
     				int attrNameSi = LEW(xml, off+1*4);  // AttrName String Index
     				int attrValueSi = LEW(xml, off+2*4); // AttrValue Str Ind, or FFFFFFFF
-    				int attrFlags = LEW(xml, off+3*4);  
+    				int attrFlags = LEW(xml, off+3*4);
     				int attrResId = LEW(xml, off+4*4);  // AttrValue ResourceId or dup AttrValue StrInd
     				off += 5*4;  // Skip over the 5 words of an attribute
 
@@ -863,7 +863,7 @@ public final class Pm {
 
 
     // compXmlStringAt -- Return the string stored in StringTable format at
-    // offset strOff.  This offset points to the 16 bit string length, which 
+    // offset strOff.  This offset points to the 16 bit string length, which
     // is followed by that number of 16 bit (Unicode) chars.
     public String compXmlStringAt(byte[] arr, int strOff) {
     	int strLen = arr[strOff+1]<<8&0xff00 | arr[strOff]&0xff;
@@ -881,7 +881,7 @@ public final class Pm {
     	return arr[off+3]<<24&0xff000000 | arr[off+2]<<16&0xff0000
     			| arr[off+1]<<8&0xff00 | arr[off]&0xFF;
     } // end of LEW
- 
+
     private void runInstall() {
         int installFlags = 0;
         String installerPackageName = null;
@@ -923,15 +923,15 @@ public final class Pm {
         }
 
         try {
-			JarFile jf = new JarFile(apkFilePath);
-			InputStream is = jf.getInputStream(jf.getEntry("AndroidManifest.xml"));
-			byte[] xml = new byte[is.available()];
-			int br = is.read(xml);
-			decompressXML(xml);
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
+            JarFile jf = new JarFile(apkFilePath);
+            InputStream is = jf.getInputStream(jf.getEntry("AndroidManifest.xml"));
+            byte[] xml = new byte[is.available()];
+            int br = is.read(xml);
+            decompressXML(xml);
+        } catch (IOException e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+        }
         int i = decompressed.indexOf("package=\"");
         int startOfName = i + "package=\"".length();
         int endOfName = decompressed.indexOf("\"", startOfName + 1);
@@ -942,7 +942,7 @@ public final class Pm {
             System.err.println("Failure ["
                     + "we don't serve your kind here"
                     + "]");
-        	return;
+            return;
         }
 
         PackageInstallObserver obs = new PackageInstallObserver();
