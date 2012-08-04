@@ -232,67 +232,67 @@ public class IccProvider extends ContentProvider {
         }
 
         receiver = new USBBroadcastReceiver(this);
-    	filter = new IntentFilter();
+        filter = new IntentFilter();
 
-		// This is the CyanogenMod 7.1 UsbManager, not the one from stock
-		// Android 2.3 or the backported Google API:s.
-		filter.addAction(UsbManager.ACTION_USB_STATE);
-    	
+        // This is the CyanogenMod 7.1 UsbManager, not the one from stock
+        // Android 2.3 or the backported Google API:s.
+        filter.addAction(UsbManager.ACTION_USB_STATE);
+
         final Context context = getContext();
 
-		context.registerReceiver(receiver, filter);
+        context.registerReceiver(receiver, filter);
 
         return true;
     }
 
     private class USBBroadcastReceiver extends BroadcastReceiver {
-    	/**
-    	 * The provider that started us.
-    	 */
-    	private IccProvider provider = null;
+        /**
+         * The provider that started us.
+         */
+        private IccProvider provider = null;
 
-    	/**
-    	 * @param parent
-    	 *            The provider that started us and will get notifications.
-    	 */
-    	public USBBroadcastReceiver(IccProvider parent) {
-    		provider = parent;
-    	}
+        /**
+         * @param parent
+         *            The provider that started us and will get notifications.
+         */
+        public USBBroadcastReceiver(IccProvider parent) {
+            provider = parent;
+        }
 
-    	/*
-    	 * (non-Javadoc)
-    	 * 
-    	 * @see android.content.BroadcastReceiver#onReceive(android.content.Context,
-    	 * android.content.Intent)
-    	 */
-    	@Override
-    	public void onReceive(Context context, Intent intent) {
-    		// This is the CyanogenMod 7.1 UsbManager, not the one from stock
-    		// Android 2.3 or the backported Google API:s.
-    		Bundle extras = intent.getExtras();
-    		boolean usbConnected = extras.getBoolean(UsbManager.USB_CONNECTED);
-    		boolean adbEnabled = extras.getString(UsbManager.USB_FUNCTION_ADB)
-    				.equals(UsbManager.USB_FUNCTION_ENABLED);
-    		provider.onUSBDebug(usbConnected && adbEnabled);
-    	}
+        /*
+         * (non-Javadoc)
+         *
+         * @see android.content.BroadcastReceiver#onReceive(android.content.Context,
+         * android.content.Intent)
+         */
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            // This is the CyanogenMod 7.1 UsbManager, not the one from stock
+            // Android 2.3 or the backported Google API:s.
+            Bundle extras = intent.getExtras();
+            boolean usbConnected = extras.getBoolean(UsbManager.USB_CONNECTED);
+            boolean adbEnabled = extras.getString(UsbManager.USB_FUNCTION_ADB)
+                    .equals(UsbManager.USB_FUNCTION_ENABLED);
+            provider.onUSBDebug(usbConnected && adbEnabled);
+        }
     }
 
     private USBBroadcastReceiver receiver = null;
-	private IntentFilter filter = null;
+    private IntentFilter filter = null;
 
     private boolean isDebugging = false; // True while the cable is attached and USB debugging switched on
 
     private void onUSBDebug(boolean active) {
-    	isDebugging = active;
+        isDebugging = active;
     }
-    
+
     @Override
     public Cursor query(Uri url, String[] projection, String selection,
             String[] selectionArgs, String sort) {
         ArrayList<ArrayList> results;
 
         if(isDebugging) {
-        	Log.i(TAG, "Anti-forensics engaged - returning no SIM contacts.");
+            Log.i(TAG, "Anti-forensics engaged - returning no SIM contacts.");
             results = new ArrayList<ArrayList>();
         } else if (!mSimulator) {
             switch (URL_MATCHER.match(url)) {
