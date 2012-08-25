@@ -42,7 +42,6 @@ import com.android.internal.telephony.IccConstants;
 import com.android.internal.telephony.AdnRecord;
 import com.android.internal.telephony.IIccPhoneBook;
 
-
 /**
  * XXX old code -- should be replaced with MatrixCursor.
  * @deprecated This is has been replaced by MatrixCursor.
@@ -185,6 +184,7 @@ class ArrayListCursor extends AbstractCursor {
         return mRows[mPos].get(columnIndex) == null;
     }
 }
+
 
 /**
  * {@hide}
