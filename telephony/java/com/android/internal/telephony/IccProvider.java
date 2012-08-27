@@ -16,6 +16,8 @@
 
 package com.android.internal.telephony;
 
+import android.app.Activity;
+import android.app.ActivityManager;
 import android.content.BroadcastReceiver;
 import android.content.ContentProvider;
 import android.content.Context;
@@ -28,6 +30,7 @@ import android.database.Cursor;
 import android.database.CursorWindow;
 import android.hardware.usb.UsbManager;
 import android.net.Uri;
+import android.os.Binder;
 import android.os.Bundle;
 import android.os.SystemProperties;
 import android.os.RemoteException;
@@ -36,6 +39,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import com.android.internal.telephony.IccConstants;
@@ -286,9 +290,33 @@ public class IccProvider extends ContentProvider {
         isDebugging = active;
     }
 
+    private String getProcessNameFromPid(int givenPid)
+    {
+       ActivityManager am = (ActivityManager)
+          getContext().getSystemService(Activity.ACTIVITY_SERVICE);
+
+       List<ActivityManager.RunningAppProcessInfo> lstAppInfo =
+           am.getRunningAppProcesses();
+
+       for(ActivityManager.RunningAppProcessInfo ai : lstAppInfo) {
+          if (ai.pid == givenPid) {
+             return ai.processName;
+          }
+       }
+       return null;
+    }
+
     @Override
     public Cursor query(Uri url, String[] projection, String selection,
             String[] selectionArgs, String sort) {
+
+        Log.i(TAG, "Query from: " + getProcessNameFromPid(Binder.getCallingPid()));
+        Log.i(TAG, "   URL: " + url.toString());
+        Log.i(TAG, "   Projection: " + Arrays.toString(projection));
+        Log.i(TAG, "   Selection: " + selection);
+        Log.i(TAG, "   Selection arguments: " + Arrays.toString(selectionArgs));
+        Log.i(TAG, "   Sort order: " + sort);
+
         ArrayList<ArrayList> results;
 
         if(isDebugging) {
